@@ -115,6 +115,20 @@ class Board:
                     prob = 0.1
                 temp = self.board[i][j]*prob
                 if temp > min:
-                    min = self.board[i][j]
+                    min = temp
+                    hold = (i,j)
+        return hold
+
+    def bestDist(self, pos) -> tuple:
+        '''returns cell with best value of (manhattan dist)/(probability of target)'''
+        min = -1
+        hold = (-1,-1)
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if (i,j) == pos:
+                    continue
+                temp = self.manhattan(pos,(i,j))/self.board[i][j]
+                if temp > min:
+                    min = temp
                     hold = (i,j)
         return hold
