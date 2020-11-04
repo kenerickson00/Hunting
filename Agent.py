@@ -10,7 +10,7 @@ def basicAgent1(board: Board) -> int:
     curcell = (-1,-1)
     while True: #continue until target is found
         actions += 1 #take 1 action per turn
-        if curcell = (-1,-1): #first turn, choose random cell
+        if curcell == (-1,-1): #first turn, choose random cell
             curcell = np.random.choice(board.dim,2,True)
             nb = board.getNeighbors(curcell)
             if len(nb) > 0: #all cells are equal probability, so choose a neighbor
@@ -36,7 +36,32 @@ def basicAgent1(board: Board) -> int:
 
 def basicAgent2(board: Board):
     '''search cells with the highest chance of finding the target first (cells with lower false positive rates). Move to neighbors only. Searching the current cell and moving to another cell both count as actions'''
-    return
+    actions = 0
+    best_cell = (-1,-1)
+    curcell = (-1,-1)
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        if curcell == (-1,-1): #first turn, choose random cell
+            curcell = np.random.choice(board.dim,2,True)
+            best_cell = board.bestFind() #find best cell
+        if not curcell == best_cell:
+            curcell = board.moveTowards(curcell, best_cell)
+            continue #move towards best cell
+        b = board.explore(curcell) #explore current cell
+        if b: #found target, stop
+            break
+        #otherwise, update probability of searched cell
+        if board._board[curcell[0]][curcell[1]] == FLAT:
+            board.board[curcell[0]][curcell[1]] = board.board[curcell[0]][curcell[1]]*0.1
+        elif board._board[curcell[0]][curcell[1]] == HILL:
+            board.board[curcell[0]][curcell[1]] = board.board[curcell[0]][curcell[1]]*0.3
+        elif board._board[curcell[0]][curcell[1]] == FOREST:
+            board.board[curcell[0]][curcell[1]] = board.board[curcell[0]][curcell[1]]*0.7
+        else:
+            board.board[curcell[0]][curcell[1]] = board.board[curcell[0]][curcell[1]]*0.9
+        if curcell == best_cell: #find new best cell
+            best_cell = board.bestFind()
+    return actions
 
 def basicAgent3(board: Board):
     '''score each cell with (manhattan distance)/(probabily of finding target) and travel to the cell with the lowest score. Move to neighbors only. Searching the current cell and moving to another cell both count as actions'''
