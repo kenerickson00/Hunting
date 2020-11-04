@@ -88,12 +88,47 @@ class Board:
         return hold
 
     def bestContains(self) -> tuple:
-        '''finds cell with best chance of containing the target'''
+        '''returns cell with best chance of containing the target'''
         min = -1
         hold = (-1,-1)
         for i in range(self.dim):
             for j in range(self.dim):
                 if self.board[i][j] > min:
                     min = self.board[i][j]
+                    hold = (i,j)
+        return hold
+
+    def bestFind(self) -> tuple:
+        '''returns cell with best chance of finding the target'''
+        min = -1
+        hold = (-1,-1)
+        for i in range(self.dim):
+            for j in range(self.dim):
+                terrian = self._board[i][j]
+                if terrain == FLAT:
+                    prob = 0.9
+                elif terrain == HILL:
+                    prob = 0.7
+                elif terrain == FOREST:
+                    prob = 0.3
+                else:
+                    prob = 0.1
+                temp = self.board[i][j]*prob
+                if temp > min:
+                    min = temp
+                    hold = (i,j)
+        return hold
+
+    def bestDist(self, pos) -> tuple:
+        '''returns cell with best value of (manhattan dist)/(probability of target)'''
+        min = -1
+        hold = (-1,-1)
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if (i,j) == pos:
+                    continue
+                temp = self.manhattan(pos,(i,j))/self.board[i][j]
+                if temp > min:
+                    min = temp
                     hold = (i,j)
         return hold
