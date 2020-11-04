@@ -63,3 +63,37 @@ class Board:
                 return [(r-1,c),(r,c-1)]
             return [(r-1,c),(r,c+1),(r,c-1)]
         return [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]
+
+    def manhattan(self, pos1: tuple, pos2: tuple) -> int:
+        x = pos2[0] - pos1[0]
+        y = pos2[1] - pos1[1]
+        if x < 0:
+            x = -x
+        if y < 0:
+            y = -y
+        return x + y
+
+    def moveTowards(self, pos1: tuple, pos2: tuple) -> tuple:
+        '''finds the best neighbor of pos1 to take, if trying to move to pos2'''
+        nb = self.getNeighbors(pos1)
+        if len(nb) <= 0:
+            return None #error
+        hold = nb[0]
+        least = self.manhattan(nb[0], pos2)
+        for i in range(len(nb)-1):
+            dist = self.manhattan(nb[i+1], pos2)
+            if dist < least:
+                least = dist
+                hold = nb[i+1]
+        return hold
+
+    def bestContains(self) -> tuple:
+        '''finds cell with best chance of containing the target'''
+        min = -1
+        hold = (-1,-1)
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if self.board[i][j] > min:
+                    min = self.board[i][j]
+                    hold = (i,j)
+        return hold
