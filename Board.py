@@ -17,6 +17,11 @@ class Board:
         self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
         self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
+        self._board_mask = np.ones((dim, dim)) #Probability that you successfully find if they are in the cell
+        self._board_mask[self._board == FLAT] *= 0.9
+        self._board_mask[self._board == HILL] *= 0.7
+        self._board_mask[self._board == FOREST] *= 0.3
+        self._board_mask[self._board == CAVE] *= 0.1
         searched = np.full((dim,dim),0) #count the number of times each cells has been searched
 
     def newTarget(self):
@@ -62,7 +67,7 @@ class Board:
             if terrain == FLAT:
                 ret = np.random.choice([0,1],1,False,[0.1,0.9])
             if terrain == HILL:
-                ret = n np.random.choice([0,1],1,False,[0.3,0.7])
+                ret = np.random.choice([0,1],1,False,[0.3,0.7])
             if terrain == FOREST:
                 ret = np.random.choice([0,1],1,False,[0.7,0.3])
             else:
@@ -124,24 +129,9 @@ class Board:
 
     def bestFind(self) -> tuple:
         '''returns cell with best chance of finding the target'''
-        min = -1
-        hold = (-1,-1)
-        for i in range(self.dim):
-            for j in range(self.dim):
-                terrian = self._board[i][j]
-                if terrain == FLAT:
-                    prob = 0.9
-                elif terrain == HILL:
-                    prob = 0.7
-                elif terrain == FOREST:
-                    prob = 0.3
-                else:
-                    prob = 0.1
-                temp = self.board[i][j]*prob
-                if temp > min:
-                    min = temp
-                    hold = (i,j)
-        return hold
+        temp = np.multiply(self.board, self._board_mask)
+        max_pos = temp.argmax()
+        return max_pos//self.dim, max_pos % self.dim
 
     def bestDist(self, pos) -> tuple:
         '''returns cell with best value of (manhattan dist)/(probability of target)'''
