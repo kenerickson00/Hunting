@@ -16,7 +16,7 @@ class Board:
         self.dim = dim
         self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
-        self.target = (np.random.randint(dim), np.random.randint(dim)) #position of the target
+        self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
         searched = np.full((dim,dim),0) #count the number of times each cells has been searched
 
     def explore(self, pos: tuple) -> int:
@@ -34,6 +34,18 @@ class Board:
         if terrain == CAVE:
             return np.random.choice([0,1],1,False,[0.9,0.1])
         return -1 #should never reach here
+    
+    def update_probability(self, pos: tuple) -> None:
+        '''Update the board probabilities after exploring the cell'''
+        if self._board[pos[0]][pos[1]] == FLAT:
+            self.board[pos[0]][pos[1]] *= 0.1
+        elif self._board[pos[0]][pos[1]] == HILL:
+            self.board[pos[0]][pos[1]] *= 0.3
+        elif self._board[pos[0]][pos[1]] == FOREST:
+            self.board[pos[0]][pos[1]] *= 0.7
+        else:
+            self.board[pos[0]][pos[1]] *= 0.9
+        return
 
     def getNeighbors(self, pos: tuple) -> list:
         '''returns a list of all valid neighbors given a position on the board'''
