@@ -14,15 +14,7 @@ class Board:
 
     def __init__(self, dim: int):
         self.dim = dim
-        terrain = np.random.choice([FLAT,HILL,FOREST,CAVE], dim**2, False, [0.2,0.3,0.3,0.2])
-        i = 0
-        j = 0
-        for el in terrain:
-            self._board[i][j] = el
-            i += 1
-            if i >= self.dim:
-                i = 0
-                j += 1
+        self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
         ind = np.random.choice(1,dim**2)
         target = (ind//dim)(ind%dim) #position of the target
