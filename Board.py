@@ -14,16 +14,9 @@ class Board:
 
     def __init__(self, dim: int):
         self.dim = dim
-        terrain = np.random.choice([FLAT,HILL,FOREST,CAVE], dim**2, False, [0.2,0.3,0.3,0.2])
-        i = 0
-        j = 0
-        for el in terrain:
-            self._board[i][j] = el
-            i += 1
-            if i >= self.dim:
-                i = 0
-                j += 1
+        self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
+        self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
         ind = np.random.choice(1,dim**2)
         self.target = (ind//dim)(ind%dim) #position of the target
         searched = np.full((dim,dim),0) #count the number of times each cells has been searched
@@ -47,6 +40,18 @@ class Board:
         if terrain == CAVE:
             return np.random.choice([0,1],1,False,[0.9,0.1])
         return -1 #should never reach here
+    
+    def update_probability(self, pos: tuple) -> None:
+        '''Update the board probabilities after exploring the cell'''
+        if self._board[pos[0]][pos[1]] == FLAT:
+            self.board[pos[0]][pos[1]] *= 0.1
+        elif self._board[pos[0]][pos[1]] == HILL:
+            self.board[pos[0]][pos[1]] *= 0.3
+        elif self._board[pos[0]][pos[1]] == FOREST:
+            self.board[pos[0]][pos[1]] *= 0.7
+        else:
+            self.board[pos[0]][pos[1]] *= 0.9
+        return
 
     def exploreMove(self, pos: tuple) -> tuple:
         '''explore for moving targets, returns a tuple containing (found/missing target, bool of whether the target is within 5 manhattan distance)'''
@@ -116,14 +121,8 @@ class Board:
 
     def bestContains(self) -> tuple:
         '''returns cell with best chance of containing the target'''
-        min = -1
-        hold = (-1,-1)
-        for i in range(self.dim):
-            for j in range(self.dim):
-                if self.board[i][j] > min:
-                    min = self.board[i][j]
-                    hold = (i,j)
-        return hold
+        max_pos = self.board.argmax()
+        return max_pos//self.dim, max_pos % self.dim
 
     def bestFind(self) -> tuple:
         '''returns cell with best chance of finding the target'''
