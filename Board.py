@@ -92,14 +92,8 @@ class Board:
 
     def bestContains(self) -> tuple:
         '''returns cell with best chance of containing the target'''
-        min = -1
-        hold = (-1,-1)
-        for i in range(self.dim):
-            for j in range(self.dim):
-                if self.board[i][j] > min:
-                    min = self.board[i][j]
-                    hold = (i,j)
-        return hold
+        max_pos = self.board.argmax()
+        return max_pos//self.dim, max_pos % self.dim
 
     def bestFind(self) -> tuple:
         '''returns cell with best chance of finding the target'''

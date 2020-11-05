@@ -19,6 +19,7 @@ def basicAgent1(board: Board) -> int:
         #Find the next smallest
         best_cell = board.bestContains()
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        curcell = best_cell
     return actions
 
 def basicAgent2(board: Board):
