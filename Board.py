@@ -17,8 +17,6 @@ class Board:
         self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
         self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
-        ind = np.random.choice(1,dim**2)
-        self.target = (ind//dim)(ind%dim) #position of the target
         searched = np.full((dim,dim),0) #count the number of times each cells has been searched
 
     def newTarget(self):
