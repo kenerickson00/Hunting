@@ -150,6 +150,15 @@ class Board:
                     min = temp
                     hold = (i,j)
         return hold
+    
+    def bestDistNumpy(self, pos) -> tuple:
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = np.maximum(col_diff, row_diff)
+        distance_mask[x_target][y_target] = 999999999 #Prevent from visiting same cell
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
 
     def isvalid(self, pos):
         if pos[0] < 0 or pos[1] < 0:
