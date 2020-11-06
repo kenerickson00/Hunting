@@ -21,17 +21,10 @@ def rule2(board: Board):
     while True: #continue until target is found
         searches += 1 #one search per turn
         cell = board.bestFind()
-        if board.explore(cell) == 1:
+        if board.explore(cell) == FOUND:
             break
         #otherwise, update probability of searched cell
-        if board._board[cell[0]][cell[1]] == FLAT:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.1
-        elif board._board[cell[0]][cell[1]] == HILL:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.3
-        elif board._board[cell[0]][cell[1]] == FOREST:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.7
-        else:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.9
+        board.update_probability(cell)
     return searches
 
 def basicAgent1(board: Board) -> int:
@@ -56,7 +49,7 @@ def basicAgent2(board: Board):
     '''search cells with the highest chance of finding the target first (cells with lower false positive rates). Move to neighbors only. Searching the current cell and moving to another cell both count as actions.'''
     actions = 0
     best_cell = (-1,-1)
-    curcell = board.bestContains() #Start on best cell
+    curcell = board.bestFind() #Start on best cell
     while True: #continue until target is found
         actions += 1 #Exploring the cell is an action
         #Explore the cell

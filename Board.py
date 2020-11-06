@@ -12,11 +12,15 @@ MISSING = 0
 
 class Board:
 
-    def __init__(self, dim: int):
+    def __init__(self, dim: int, copy_board=None, copy_target=None):
         self.dim = dim
-        self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
+        if copy_board is None:
+            self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
+            self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
+        else:
+            self._board = copy_board
+            self.target = copy_target
         self.board = np.full((dim,dim),1/(dim**2)) #probability of each cell being the target
-        self.target = (int(np.random.randint(dim)), int(np.random.randint(dim))) #position of the target
         self._board_mask = np.ones((dim, dim)) #Probability that you successfully find if they are in the cell
         self._board_mask[self._board == FLAT] *= 0.9
         self._board_mask[self._board == HILL] *= 0.7
