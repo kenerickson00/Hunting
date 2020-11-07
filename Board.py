@@ -154,7 +154,7 @@ class Board:
     def bestDistNumpy(self, pos) -> tuple:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
-        distance_mask = np.maximum(col_diff, row_diff)
+        distance_mask = col_diff + row_diff
         distance_mask[x_target][y_target] = 999999999 #Prevent from visiting same cell
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
