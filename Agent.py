@@ -133,27 +133,19 @@ def improvedAgent(board: Board):
 
 def moveAnyAgent(board: Board):
     '''agent for a board with a moving target. Can move to any space on the board each turn. Use basicAgent1 strategy to search spaces until we get close to the target, then use local search. Return the number of searches.'''
-    close = False
+    target_nearby = False
     searches = 0
     while True: #continue until target is found
         searches += 1 #one search per turn
-        if close and searches > 1:
+        if target_nearby and searches > 1:
             cell = board.bestLocal(cell,5)
-        else:
+        else: #Should probably have a better algorithm for this
             cell = board.bestContains()
-        b = board.exploreMove(curcell) #explore current cell
-        if b[0] == 1: #found target, stop
+        found_target, target_nearby = board.exploreMove(cell) #explore current cell
+        if found_target: #found target, stop
             break
-        close = b[1]
         #otherwise, update probability of searched cell
-        if board._board[cell[0]][cell[1]] == FLAT:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.1
-        elif board._board[cell[0]][cell[1]] == HILL:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.3
-        elif board._board[cell[0]][cell[1]] == FOREST:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.7
-        else:
-            board.board[cell[0]][cell[1]] = board.board[cell[0]][cell[1]]*0.9
+        board.update_probability(cell)
     return searches
 
 def moveCloseAgent(board: Board):

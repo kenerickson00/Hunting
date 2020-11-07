@@ -1,6 +1,7 @@
 '''Board representation'''
 
 import numpy as np
+from random import choice
 
 FLAT = 0
 HILL = 1
@@ -77,31 +78,25 @@ class Board:
             else:
                 ret = np.random.choice([0,1],1,False,[0.9,0.1])
         if ret == 0:
-            target = np.random.choice(self.getNeighbors(target),1) #move target to random neighbor
-            if self.manhattan(pos,target) > 5:
-                return (0,False)
-            return (0,True)
-        return (1,True)
+            self.target = choice(self.getNeighbors(self.target)) #move target to random neighbor
+            if self.manhattan(pos, self.target) > 5:
+                return (False, False)
+            return (False, True)
+        return (True, True)
 
     def getNeighbors(self, pos: tuple) -> list:
         '''returns a list of all valid neighbors given a position on the board'''
-        r = pos[0]
-        c = pos[1]
-        if r < 0 or c < 0 or r >= self.dim or c >= self.dim:
-            return []
-        if r == 0:
-            if c == 0:
-                return [(r+1,c),(r,c+1)]
-            elif c == self.dim-1:
-                return [(r+1,c),(r,c-1)]
-            return [(r+1,c),(r,c+1),(r,c-1)]
-        if r == self.dim-1:
-            if c == 0:
-                return [(r-1,c),(r,c+1)]
-            elif c == self.dim-1:
-                return [(r-1,c),(r,c-1)]
-            return [(r-1,c),(r,c+1),(r,c-1)]
-        return [(r+1,c),(r-1,c),(r,c+1),(r,c-1)]
+        row, col = pos
+        neighbors = []
+        if row != 0:
+            neighbors.append((row-1, col))
+        if row != self.dim:
+            neighbors.append((row+1, col))
+        if col != 0:
+            neighbors.append((row, col-1))
+        if col != self.dim:
+            neighbors.append((row, col+1))
+        return neighbors
 
     def manhattan(self, pos1: tuple, pos2: tuple) -> int:
         x = pos2[0] - pos1[0]
