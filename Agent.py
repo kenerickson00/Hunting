@@ -118,6 +118,42 @@ def improvedAgent(board: Board):
         curcell = best_cell
     return actions
 
+def improvedAgent2(board: Board):
+    '''A modified version of agent 3 that utilizes a weighted distance heuristic'''
+    actions = 0
+    best_cell = (-1,-1)
+    curcell = board.bestFind() #Start on best cell
+    while True: #continue until target is found
+        actions += 1 #Exploring the cell is an action
+        #Explore the cell
+        if board.explore(curcell) == FOUND:
+            break
+        #Update probabilities
+        board.update_probability(curcell)
+        #Find the next smallest
+        best_cell = board.bestWeightedDist(curcell)
+        actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        curcell = best_cell
+    return actions
+
+def improvedAgent3(board: Board):
+    '''A modified version of agent 3 that utilizes a weighted distance heuristic'''
+    actions = 0
+    best_cell = (-1,-1)
+    curcell = board.bestFind() #Start on best cell
+    while True: #continue until target is found
+        actions += 1 #Exploring the cell is an action
+        #Explore the cell
+        if board.explore(curcell) == FOUND:
+            break
+        #Update probabilities
+        board.update_probability(curcell)
+        #Find the next smallest
+        best_cell = board.bestWeightedDist2(curcell)
+        actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        curcell = best_cell
+    return actions
+
 def moveAnyAgent(board: Board):
     '''agent for a board with a moving target. Can move to any space on the board each turn. Use basicAgent1 strategy to search spaces until we get close to the target, then use local search. Return the number of searches.'''
     target_nearby = False

@@ -156,6 +156,26 @@ class Board:
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
+    
+    def bestWeightedDist(self, pos) -> tuple:
+        '''Utilizes a similar manhattan dist/probability heuristic, but weighted'''
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = col_diff + row_diff + 1
+        distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
+
+    def bestWeightedDist2(self, pos) -> tuple:
+        '''Utilizes a similar manhattan dist/probability heuristic, but weighted'''
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = (col_diff + row_diff + 1) * 0.5
+        distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
 
     #Not used
     def isvalid(self, pos):
