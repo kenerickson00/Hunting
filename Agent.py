@@ -163,8 +163,9 @@ def moveAnyAgent(board: Board):
         if target_nearby and searches > 1:
             cell = board.bestLocal(cell,5)
         else: #Should probably have a better algorithm for this
-            cell = board.bestContains()
+            cell = board.bestContainsMoving()
         found_target, target_nearby = board.exploreMove(cell) #explore current cell
+        board.target_movement() #Target walks
         if found_target: #found target, stop
             break
         #otherwise, update probability of searched cell
@@ -180,19 +181,18 @@ def moveCloseAgent(board: Board):
     while True: #continue until target is found
         actions += 1 #take 1 action per turn
         found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        board.target_movement() #Target walks
         if found_target: #found target, stop
             break
         #otherwise, update probability of searched cell
         board.update_probability(curcell)
-        if curcell == best_cell: #find new best cell
-            if target_nearby:
-                best_cell = board.bestLocal(curcell,5)
-            else:
-                best_cell = board.bestDistNumpy(curcell)
         if target_nearby:
             best_cell = board.bestLocal(curcell,5)
         else:
-            best_cell = board.bestDistNumpy(curcell)
-        actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+            best_cell = board.bestDistMoving(curcell)
+        num_walk_actions = board.manhattan(curcell, best_cell)
+        actions += num_walk_actions #Add the actions of moving to the new location
+        for _ in range(num_walk_actions): #Allow the target to walk for each action we take
+            board.target_movement()
         curcell = best_cell
     return actions
