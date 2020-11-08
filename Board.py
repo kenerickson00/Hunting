@@ -134,7 +134,6 @@ class Board:
         max_pos = temp.argmax()
         return max_pos//self.dim, max_pos % self.dim
 
-    #Not used
     def bestDist(self, pos) -> tuple:
         '''returns cell with best value of (manhattan dist)/(probability of target)'''
         min = 99999999
@@ -144,7 +143,7 @@ class Board:
                 if (i,j) == pos:
                     continue
                 if self.board[i][j] != 0:
-                    temp = self.manhattan(pos,(i,j))/self.board[i][j]
+                    temp = (self.manhattan(pos,(i,j))+1)/self.board[i][j]
                 if temp < min:
                     min = temp
                     hold = (i,j)
@@ -153,8 +152,7 @@ class Board:
     def bestDistNumpy(self, pos) -> tuple:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
-        distance_mask = col_diff + row_diff
-        distance_mask[x_target][y_target] = 999999999 #Prevent from visiting same cell
+        distance_mask = col_diff + row_diff + 1
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
