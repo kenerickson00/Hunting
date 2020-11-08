@@ -49,7 +49,7 @@ class Board:
         if terrain == CAVE:
             return np.random.choice([0,1],1,False,[0.9,0.1])
         return -1 #should never reach here
-    
+
     def update_probability(self, pos: tuple) -> None:
         '''Update the board probabilities after exploring the cell'''
         if self._board[pos[0]][pos[1]] == FLAT:
@@ -148,7 +148,7 @@ class Board:
                     min = temp
                     hold = (i,j)
         return hold
-    
+
     def bestDistNumpy(self, pos) -> tuple:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
@@ -186,5 +186,5 @@ class Board:
     def bestLocal(self, pos, x) -> tuple:
         '''returns cell with highest chance of being the target within a box of radius x around pos'''
         #Generate all valid neighbors
-        neighborhood = [(row, col) for row in range(max(0, pos[0]-5), min(self.dim, pos[0]+6)) for col in range(max(0, pos[1]-5), min(self.dim, pos[1]+6)) if (abs(row-pos[0]) + abs(col-pos[1])) <= 5]
-        return min(neighborhood, key = lambda x: self.board[x[0]][x[1]]) #Return index with max probability
+        neighborhood = [(row, col) for row in range(max(0, pos[0]-x), min(self.dim, pos[0]+x+1)) for col in range(max(0, pos[1]-x), min(self.dim, pos[1]+x+1)) if (abs(row-pos[0]) + abs(col-pos[1])) <= x]
+        return max(neighborhood, key = lambda y: self.board[y[0]][y[1]]) #Return index with max probability
