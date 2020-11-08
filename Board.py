@@ -29,6 +29,7 @@ class Board:
         self._board_mask[self._board == CAVE] *= 0.1
         searched = np.full((dim,dim),0) #count the number of times each cells has been searched
 
+    #Not used
     def newTarget(self):
         ind = np.random.choice(1,dim**2)
         self.target = (ind//dim)(ind%dim)
@@ -107,6 +108,7 @@ class Board:
             y = -y
         return x + y
 
+    #Not used
     def moveTowards(self, pos1: tuple, pos2: tuple) -> tuple:
         '''finds the best neighbor of pos1 to take, if trying to move to pos2'''
         nb = self.getNeighbors(pos1)
@@ -134,14 +136,15 @@ class Board:
 
     def bestDist(self, pos) -> tuple:
         '''returns cell with best value of (manhattan dist)/(probability of target)'''
-        min = -1
+        min = 99999999
         hold = (-1,-1)
         for i in range(self.dim):
             for j in range(self.dim):
                 if (i,j) == pos:
                     continue
-                temp = self.manhattan(pos,(i,j))/self.board[i][j]
-                if temp > min:
+                if self.board[i][j] != 0:
+                    temp = (self.manhattan(pos,(i,j))+1)/self.board[i][j]
+                if temp < min:
                     min = temp
                     hold = (i,j)
         return hold
@@ -149,12 +152,12 @@ class Board:
     def bestDistNumpy(self, pos) -> tuple:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
-        distance_mask = col_diff + row_diff
-        distance_mask[x_target][y_target] = 999999999 #Prevent from visiting same cell
+        distance_mask = col_diff + row_diff + 1
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
 
+    #Not used
     def isvalid(self, pos):
         if pos[0] < 0 or pos[1] < 0:
             return False
@@ -162,6 +165,7 @@ class Board:
             return False
         return True
 
+    #Not used
     def box(self, pos, x) -> set:
         '''returns an set of cells that are at most x spaces away from pos'''
         s = set()
@@ -181,11 +185,6 @@ class Board:
 
     def bestLocal(self, pos, x) -> tuple:
         '''returns cell with highest chance of being the target within a box of radius x around pos'''
-        bx = self.box(pos, x)
-        min = -1
-        hold = (-1,-1)
-        for p in bx:
-            if self.board[p[0]][p[1]] > min:
-                min = self.board[p[0]][p[1]]
-                hold = p
-        return hold
+        #Generate all valid neighbors
+        neighborhood = [(row, col) for row in range(max(0, pos[0]-5), min(self.dim, pos[0]+6)) for col in range(max(0, pos[1]-5), min(self.dim, pos[1]+6)) if (abs(row-pos[0]) + abs(col-pos[1])) <= 5]
+        return min(neighborhood, key = lambda x: self.board[x[0]][x[1]]) #Return index with max probability
