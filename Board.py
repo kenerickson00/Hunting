@@ -13,7 +13,7 @@ MISSING = 0
 
 class Board:
 
-    def __init__(self, dim: int, copy_board=None, copy_target=None):
+    def __init__(self, dim: int, copy_board=None, copy_target=None, moving_target=False):
         self.dim = dim
         if copy_board is None:
             self._board = np.random.choice([FLAT,HILL,FOREST,CAVE], (dim, dim), True, [0.2,0.3,0.3,0.2])
@@ -27,7 +27,8 @@ class Board:
         self._board_mask[self._board == HILL] *= 0.7
         self._board_mask[self._board == FOREST] *= 0.3
         self._board_mask[self._board == CAVE] *= 0.1
-        searched = np.full((dim,dim),0) #count the number of times each cells has been searched
+        if moving_target:
+            self._known_cleared = np.ones((dim, dim))
 
     #Not used
     def newTarget(self):
@@ -61,6 +62,19 @@ class Board:
         else:
             self.board[pos[0]][pos[1]] *= 0.9
         return
+    
+    def target_movement(self) -> None:
+        '''Move the target when there is a new action'''
+        neighbors = self.getNeighbors(self.target)
+        if len(neighbors) > 0:
+            self.target = choice(neighbors)
+        self.update_cleared_cells()
+        return
+    
+    def update_cleared_cells(self) -> None:
+        '''Update the cleared cells matrix upon another action'''
+        self._known_cleared = np.maximum(np.ones((self.dim, self.dim)), self._known_cleared - 1)
+        return
 
     def exploreMove(self, pos: tuple) -> tuple:
         '''explore for moving targets, returns a tuple containing (found/missing target, bool of whether the target is within 5 manhattan distance)'''
@@ -72,15 +86,19 @@ class Board:
             terrain = self._board[pos[0]][pos[1]]
             if terrain == FLAT:
                 ret = np.random.choice([0,1],1,False,[0.1,0.9])
-            if terrain == HILL:
+            elif terrain == HILL:
                 ret = np.random.choice([0,1],1,False,[0.3,0.7])
-            if terrain == FOREST:
+            elif terrain == FOREST:
                 ret = np.random.choice([0,1],1,False,[0.7,0.3])
             else:
                 ret = np.random.choice([0,1],1,False,[0.9,0.1])
         if ret == 0:
-            self.target = choice(self.getNeighbors(self.target)) #move target to random neighbor
             if self.manhattan(pos, self.target) > 5:
+                #Prevent these cells from being visited again soon, poor python implementation - hopefully can find a proper numpy implementation
+                neighborhood = [(row, col) for row in range(max(0, pos[0]-5), min(self.dim, pos[0]+6)) for col in range(max(0, pos[1]-5), min(self.dim, pos[1]+6)) if (abs(row-pos[0]) + abs(col-pos[1])) <= 5]
+                for neighbor in neighborhood:
+                    row, col = neighbor
+                    self._known_cleared[row][col] = 6 - self.manhattan(neighbor, pos) #Number of turns until the target can walk to the position
                 return (False, False)
             return (False, True)
         return (True, True)
@@ -91,11 +109,11 @@ class Board:
         neighbors = []
         if row != 0:
             neighbors.append((row-1, col))
-        if row != self.dim:
+        if row != self.dim-1:
             neighbors.append((row+1, col))
         if col != 0:
             neighbors.append((row, col-1))
-        if col != self.dim:
+        if col != self.dim-1:
             neighbors.append((row, col+1))
         return neighbors
 
@@ -128,6 +146,12 @@ class Board:
         max_pos = self.board.argmax()
         return max_pos//self.dim, max_pos % self.dim
 
+    def bestContainsMoving(self) -> tuple:
+        '''Returns cell with best chance out of cells that are not cleared'''
+        search_board = self.board * (self._known_cleared == 1)
+        max_pos = search_board.argmax()
+        return max_pos//self.dim, max_pos % self.dim
+
     def bestFind(self) -> tuple:
         '''returns cell with best chance of finding the target'''
         temp = np.multiply(self.board, self._board_mask)
@@ -153,6 +177,36 @@ class Board:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
         distance_mask = col_diff + row_diff + 1
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
+    
+    def bestDistMoving(self, pos) -> tuple:
+        '''(Manhattan Distance)/(Probability) heuristic with moving target'''
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = col_diff + row_diff + 1
+        distance_mask = distance_mask * np.where(self._known_cleared == 1, self._known_cleared, 99999) #Prevent those which have been cleared from being chosen
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
+    
+    def bestWeightedDist(self, pos) -> tuple:
+        '''Utilizes a similar manhattan dist/probability heuristic, but weighted'''
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = col_diff + row_diff + 1
+        distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
+        scores = np.divide(distance_mask, self.board)
+        min_pos = scores.argmin()
+        return min_pos // self.dim, min_pos % self.dim
+
+    def bestWeightedDist2(self, pos) -> tuple:
+        '''Utilizes a similar manhattan dist/probability heuristic, but weighted'''
+        x_target, y_target = pos
+        col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
+        distance_mask = (col_diff + row_diff + 1) * 0.5
+        distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
