@@ -154,6 +154,26 @@ def improvedAgent3(board: Board):
         curcell = best_cell
     return actions
 
+def improvedAgent4(board: Board):
+    '''A modified version of agent 3 that searches each cell multiple times in a row'''
+    actions = 0
+    best_cell = (-1,-1)
+    curcell = board.bestFind() #Start on best cell
+    while True: #continue until target is found
+        #Explore the cell
+        #tries = int(1/board.board[curcell[0]][curcell[1]])
+        for i in range(2):
+            actions += 1 #Exploring the cell is an action
+            if board.explore(curcell) == FOUND:
+                return actions
+            #Update probabilities
+            board.update_probability(curcell)
+        #Find the next smallest
+        best_cell = board.bestDistNumpy(curcell)
+        actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        curcell = best_cell
+    return actions
+
 def moveAnyAgent(board: Board):
     '''agent for a board with a moving target. Can move to any space on the board each turn. Use basicAgent1 strategy to search spaces until we get close to the target, then use local search. Return the number of searches.'''
     target_nearby = False
