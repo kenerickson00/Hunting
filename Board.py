@@ -62,7 +62,7 @@ class Board:
         else:
             self.board[pos[0]][pos[1]] *= 0.9
         return
-    
+
     def target_movement(self) -> None:
         '''Move the target when there is a new action'''
         neighbors = self.getNeighbors(self.target)
@@ -70,7 +70,7 @@ class Board:
             self.target = choice(neighbors)
         self.update_cleared_cells()
         return
-    
+
     def update_cleared_cells(self) -> None:
         '''Update the cleared cells matrix upon another action'''
         self._known_cleared = np.maximum(np.ones((self.dim, self.dim)), self._known_cleared - 1)
@@ -180,7 +180,7 @@ class Board:
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
-    
+
     def bestDistMoving(self, pos) -> tuple:
         '''(Manhattan Distance)/(Probability) heuristic with moving target'''
         x_target, y_target = pos
@@ -190,7 +190,7 @@ class Board:
         scores = np.divide(distance_mask, self.board)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
-    
+
     def bestWeightedDist(self, pos) -> tuple:
         '''Utilizes a similar manhattan dist/probability heuristic, but weighted'''
         x_target, y_target = pos
