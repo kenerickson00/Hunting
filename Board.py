@@ -200,7 +200,7 @@ class Board:
         x_target, y_target = pos
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
         distance_mask = col_diff + row_diff + 1
-        scores = np.divide(distance_mask, self.board)
+        scores = np.divide(distance_mask, self.board*self._board_mask)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
 
@@ -210,7 +210,7 @@ class Board:
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
         distance_mask = col_diff + row_diff + 1
         distance_mask = distance_mask * np.where(self._known_cleared == 1, self._known_cleared, 99999) #Prevent those which have been cleared from being chosen
-        scores = np.divide(distance_mask, self.board)
+        scores = np.divide(distance_mask, self.board*self._board_mask)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
 
@@ -220,7 +220,7 @@ class Board:
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
         distance_mask = col_diff + row_diff + 1
         distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
-        scores = np.divide(distance_mask, self.board)
+        scores = np.divide(distance_mask, self.board*self._board_mask)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
 
@@ -230,7 +230,7 @@ class Board:
         col_diff, row_diff = np.abs(np.mgrid[-x_target:self.dim-x_target, -y_target:self.dim-y_target])
         distance_mask = (col_diff + row_diff + 1) * 0.5
         distance_mask = np.maximum(np.ones((self.dim, self.dim)), distance_mask-5)
-        scores = np.divide(distance_mask, self.board)
+        scores = np.divide(distance_mask, self.board*self._board_mask)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
 

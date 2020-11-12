@@ -161,8 +161,9 @@ def improvedAgent4(board: Board):
     curcell = board.bestFind() #Start on best cell
     while True: #continue until target is found
         #Explore the cell
-        #tries = int(1/board.board[curcell[0]][curcell[1]])
-        for i in range(2):
+        #tries = 2
+        tries = board._board[curcell[0]][curcell[1]] + 2
+        for i in range(tries):
             actions += 1 #Exploring the cell is an action
             if board.explore(curcell) == FOUND:
                 return actions
@@ -211,7 +212,7 @@ def moveCloseAgent(board: Board):
         elif best_cell == curcell: #Find new cell to travel to
             best_cell = board.bestDistMoving(curcell)
         curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action     
+        actions += 1 #Walking action
         # num_walk_actions = board.manhattan(curcell, best_cell)
         # actions += num_walk_actions #Add the actions of moving to the new location
         # for _ in range(num_walk_actions): #Allow the target to walk for each action we take
@@ -239,7 +240,7 @@ def moveCloseAgent2(board: Board):
             elif best_cell == curcell: #Find new cell to travel to
                 best_cell = board.bestDistMoving(curcell)
         curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action     
+        actions += 1 #Walking action
         # num_walk_actions = board.manhattan(curcell, best_cell)
         # actions += num_walk_actions #Add the actions of moving to the new location
         # for _ in range(num_walk_actions): #Allow the target to walk for each action we take
