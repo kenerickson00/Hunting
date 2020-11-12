@@ -129,17 +129,40 @@ class Board:
     #Not used
     def moveTowards(self, pos1: tuple, pos2: tuple) -> tuple:
         '''finds the best neighbor of pos1 to take, if trying to move to pos2'''
-        nb = self.getNeighbors(pos1)
-        if len(nb) <= 0:
-            return None #error
-        hold = nb[0]
-        least = self.manhattan(nb[0], pos2)
-        for i in range(len(nb)-1):
-            dist = self.manhattan(nb[i+1], pos2)
-            if dist < least:
-                least = dist
-                hold = nb[i+1]
-        return hold
+        # nb = self.getNeighbors(pos1)
+        # if len(nb) <= 0:
+        #     return None #error
+        # hold = nb[0]
+        # least = self.manhattan(nb[0], pos2)
+        # for i in range(len(nb)-1):
+        #     dist = self.manhattan(nb[i+1], pos2)
+        #     if dist < least:
+        #         least = dist
+        #         hold = nb[i+1]
+        # return hold
+        #Row
+        row_diff = 0
+        col_diff = 0
+        if pos2[0] - pos1[0] > 0: #Down
+            row_diff = 1
+        elif pos2[0] - pos1[0] < 0: #Up
+            row_diff = -1
+        #Col
+        if pos2[1] - pos1[1] > 0: #Right
+            col_diff = 1
+        elif pos2[1] - pos1[1] < 0: #Left
+            col_diff = -1
+        #Determine which position to choose
+        if row_diff == 0:
+            return (pos1[0], pos1[1] + col_diff)
+        elif col_diff == 0:
+            return (pos1[0] + row_diff, pos1[1])
+        else: #Return bigger probability
+            if self.board[pos1[0]][pos1[1] + col_diff] > self.board[pos1[0] + row_diff][pos1[1]]:
+                return (pos1[0], pos1[1] + col_diff)
+            else:
+                return (pos1[0] + row_diff, pos1[1])
+
 
     def bestContains(self) -> tuple:
         '''returns cell with best chance of containing the target'''
