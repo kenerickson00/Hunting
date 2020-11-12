@@ -161,8 +161,8 @@ def improvedAgent4(board: Board):
     curcell = board.bestFind() #Start on best cell
     while True: #continue until target is found
         #Explore the cell
-        #tries = 2
-        tries = board._board[curcell[0]][curcell[1]] + 2
+        tries = 2
+        #tries = board._board[curcell[0]][curcell[1]] + 2
         for i in range(tries):
             actions += 1 #Exploring the cell is an action
             if board.explore(curcell) == FOUND:
