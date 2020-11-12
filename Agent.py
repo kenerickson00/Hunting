@@ -196,6 +196,60 @@ def moveCloseAgent(board: Board):
     '''agent for a board with a moving target. Can only move to neighbors of the current cell each turn. Use basicAgent3 strategy to find spaces until we get close to target, then use local search. Returns number of actions taken.'''
     target_nearby = False
     actions = 0
+    curcell = board.bestFind()
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        board.target_movement() #Target walks
+        if found_target: #found target, stop
+            break
+        #otherwise, update probability of searched cell
+        board.update_probability(curcell)
+        if target_nearby:
+            best_cell = board.bestLocal(curcell,5)
+        elif best_cell == curcell: #Find new cell to travel to
+            best_cell = board.bestDistMoving(curcell)
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action     
+        # num_walk_actions = board.manhattan(curcell, best_cell)
+        # actions += num_walk_actions #Add the actions of moving to the new location
+        # for _ in range(num_walk_actions): #Allow the target to walk for each action we take
+        #     board.target_movement()
+    return actions
+
+def moveCloseAgent2(board: Board):
+    '''agent for a board with a moving target. Can only move to neighbors of the current cell each turn. Use basicAgent3 strategy to find spaces until we get close to target, then use local search. Returns number of actions taken.'''
+    target_nearby = False
+    actions = 0
+    curcell = board.bestFind()
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        if best_cell == curcell:
+            found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        board.target_movement() #Target walks
+        if found_target: #found target, stop
+            break
+        #otherwise, update probability of searched cell
+        if best_cell == curcell:
+            board.update_probability(curcell)
+            if target_nearby:
+                best_cell = board.bestLocal(curcell,5)
+            elif best_cell == curcell: #Find new cell to travel to
+                best_cell = board.bestDistMoving(curcell)
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action     
+        # num_walk_actions = board.manhattan(curcell, best_cell)
+        # actions += num_walk_actions #Add the actions of moving to the new location
+        # for _ in range(num_walk_actions): #Allow the target to walk for each action we take
+        #     board.target_movement()
+    return actions
+
+def moveCloseAgent3(board: Board):
+    '''agent for a board with a moving target. Can only move to neighbors of the current cell each turn. Use basicAgent3 strategy to find spaces until we get close to target, then use local search. Returns number of actions taken.'''
+    target_nearby = False
+    actions = 0
     best_cell = (-1,-1)
     curcell = board.bestFind()
     while True: #continue until target is found
