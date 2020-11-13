@@ -47,8 +47,7 @@ def basicAgent1(board: Board, moving_target=False) -> int:
         best_cell = board.bestContains()
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
         if moving_target:
-            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
-                board.target_movement(update_cleared=False)
+            board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
@@ -68,11 +67,8 @@ def basicAgent2(board: Board, moving_target=False) -> int:
         best_cell = board.bestFind()
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
         if moving_target:
-            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
-                board.target_movement(update_cleared=False)
+            board.target_movement(update_cleared=False)
         curcell = best_cell
-        if actions > 500000:
-            return -1
     return actions
 
 def basicAgent3(board: Board) -> int:
@@ -90,7 +86,6 @@ def basicAgent3(board: Board) -> int:
         #Find the next smallest
         best_cell = board.bestDist(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
-
         curcell = best_cell
     return actions
 
@@ -110,8 +105,7 @@ def basicAgent4(board: Board, moving_target=False) -> int:
         best_cell = board.bestDistNumpy(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
         if moving_target:
-            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
-                board.target_movement(update_cleared=False)
+            board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
@@ -189,8 +183,7 @@ def improvedAgent4(board: Board, moving_target=False) -> int:
         best_cell = board.bestDistNumpy(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
         if moving_target:
-            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
-                board.target_movement(update_cleared=False)
+            board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
@@ -345,8 +338,8 @@ def moveAgent1(board: Board) -> int:
             best_cell = board.bestLocal(curcell, 5)
         elif best_cell == curcell: #Find new cell to travel to
             best_cell = board.bestContains()
-        curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action
+        curcell = best_cell
+        actions += board.manhattan(curcell, best_cell) #Walking action
     return actions
 
 def moveAgent2(board: Board) -> int:
@@ -367,8 +360,8 @@ def moveAgent2(board: Board) -> int:
             best_cell = board.bestLocal2(curcell, 5)
         elif best_cell == curcell: #Find new cell to travel to
             best_cell = board.bestFind()
-        curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action
+        curcell = best_cell
+        actions += board.manhattan(curcell, best_cell) #Walking action
     return actions
 
 def moveAgent3(board: Board) -> int:
@@ -389,8 +382,8 @@ def moveAgent3(board: Board) -> int:
             best_cell = board.bestLocal3(curcell, 5)
         elif best_cell == curcell: #Find new cell to travel to
             best_cell = board.bestDistNumpy(curcell)
-        curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action
+        curcell = best_cell
+        actions += board.manhattan(curcell, best_cell) #Walking action
     return actions
 
 def moveAgent4(board: Board) -> int:
@@ -399,20 +392,24 @@ def moveAgent4(board: Board) -> int:
     actions = 0
     curcell = board.bestFind() #Use for initial cell
     best_cell = curcell
+    found = False
     while True: #continue until target is found
         tries = 2
         for _ in range(tries):
             actions += 1 #take 1 action per turn
             found_target, target_nearby = board.exploreMove(curcell) #explore current cell
             if found_target: #found target, stop
+                found = True
                 break
             board.target_movement() #Target walks
             #otherwise, update probability of searched cell
             board.update_probability(curcell)
+        if found:
+            break
         if target_nearby:
             best_cell = board.bestLocal3(curcell, 5)
         elif best_cell == curcell: #Find new cell to travel to
             best_cell = board.bestDistNumpy(curcell)
-        curcell = board.moveTowards(curcell, best_cell) #Walk towards
-        actions += 1 #Walking action
+        curcell = best_cell
+        actions += board.manhattan(curcell, best_cell) #Walking action
     return actions
