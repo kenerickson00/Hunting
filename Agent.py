@@ -3,7 +3,7 @@
 from Board import Board, FLAT, HILL, FOREST, CAVE, FOUND, MISSING
 import numpy as np
 
-def rule1(board: Board) -> int:
+def rule1(board: Board, moving_target=False) -> int:
     '''search cell with the highest chance of containing the target first. returns the number of searches'''
     searches = 0
     while True: #continue until target is found
@@ -11,11 +11,13 @@ def rule1(board: Board) -> int:
         cell = board.bestContains()
         if board.explore(cell) == FOUND:
             break
+        if moving_target:
+            board.target_movement(update_cleared=False)
         #otherwise, update probability of searched cell
         board.update_probability(cell)
     return searches
 
-def rule2(board: Board):
+def rule2(board: Board, moving_target=False) -> int:
     '''search cell with the highest chance of finding the target first (cells with lower false positive rates). returns the number of searches'''
     searches = 0
     while True: #continue until target is found
@@ -23,6 +25,8 @@ def rule2(board: Board):
         cell = board.bestFind()
         if board.explore(cell) == FOUND:
             break
+        if moving_target:
+            board.target_movement(update_cleared=False)
         #otherwise, update probability of searched cell
         board.update_probability(cell)
     return searches
@@ -271,3 +275,40 @@ def moveCloseAgent3(board: Board):
             board.target_movement()
         curcell = best_cell
     return actions
+
+def moveRule1(board: Board):
+    '''Search cell with highest chance of containing the target on board with a moving target'''
+    searches = 0
+    target_nearby = False
+    while True: #continue until target is found
+        searches += 1 #one search per turn
+        if target_nearby:
+            cell = board.bestLocal(cell, 5)
+        else:
+            cell = board.bestContains()
+        found_target, target_nearby = board.exploreMove(cell)
+        if found_target:
+            break
+        board.target_movement(update_cleared=False) #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(cell)
+    return searches
+
+def moveRule2(board: Board):
+    '''Search cell with highest chance of finding the target on board with a moving target'''
+    searches = 0
+    target_nearby = False
+    while True: #continue until target is found
+        searches += 1 #one search per turn
+        if target_nearby:
+            cell = board.bestLocal2(cell, 5)
+        else:
+            cell = board.bestFind()
+        found_target, target_nearby = board.exploreMove(cell)
+        if found_target:
+            break
+        board.target_movement(update_cleared=False) #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(cell)
+    return searches
+

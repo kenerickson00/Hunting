@@ -63,12 +63,13 @@ class Board:
             self.board[pos[0]][pos[1]] *= 0.9
         return
 
-    def target_movement(self) -> None:
+    def target_movement(self, update_cleared=True) -> None:
         '''Move the target when there is a new action'''
         neighbors = self.getNeighbors(self.target)
         if len(neighbors) > 0:
             self.target = choice(neighbors)
-        self.update_cleared_cells()
+        if update_cleared:
+            self.update_cleared_cells()
         return
 
     def update_cleared_cells(self) -> None:
@@ -260,8 +261,14 @@ class Board:
                     s.add(pos+(-i,-j))
         return s
 
-    def bestLocal(self, pos, x) -> tuple:
-        '''returns cell with highest chance of being the target within a box of radius x around pos'''
+    def bestLocal(self, pos, x:int) -> tuple:
+        '''Rule 1 implementation - Returns cell with highest chance of containing target within radius x around pos'''
         #Generate all valid neighbors
         neighborhood = [(row, col) for row in range(max(0, pos[0]-x), min(self.dim, pos[0]+x+1)) for col in range(max(0, pos[1]-x), min(self.dim, pos[1]+x+1)) if (abs(row-pos[0]) + abs(col-pos[1])) <= x]
         return max(neighborhood, key = lambda y: self.board[y[0]][y[1]]) #Return index with max probability
+
+    def bestLocal2(self, pos, x:int) -> tuple:
+        '''Rule 2 implementation - Returns cell with highest chance of finding target within radius x around pos'''
+        #Generate all valid neighbors
+        neighborhood = [(row, col) for row in range(max(0, pos[0]-x), min(self.dim, pos[0]+x+1)) for col in range(max(0, pos[1]-x), min(self.dim, pos[1]+x+1)) if (abs(row-pos[0]) + abs(col-pos[1])) <= x]
+        return max(neighborhood, key = lambda y: self.board[y[0]][y[1]]*self._board_mask[y[0]][y[1]]) #Return index with max probability
