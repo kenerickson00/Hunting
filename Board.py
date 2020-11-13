@@ -272,3 +272,9 @@ class Board:
         #Generate all valid neighbors
         neighborhood = [(row, col) for row in range(max(0, pos[0]-x), min(self.dim, pos[0]+x+1)) for col in range(max(0, pos[1]-x), min(self.dim, pos[1]+x+1)) if (abs(row-pos[0]) + abs(col-pos[1])) <= x]
         return max(neighborhood, key = lambda y: self.board[y[0]][y[1]]*self._board_mask[y[0]][y[1]]) #Return index with max probability
+
+    def bestLocal3(self, pos, x:int) -> tuple:
+        '''Dist rule implementation - Returns cell with highest chance of finding target within radius x around pos'''
+        #Generate all valid neighbors
+        neighborhood = [(row, col) for row in range(max(0, pos[0]-x), min(self.dim, pos[0]+x+1)) for col in range(max(0, pos[1]-x), min(self.dim, pos[1]+x+1)) if (abs(row-pos[0]) + abs(col-pos[1])) <= x]
+        return max(neighborhood, key = lambda y: (self.manhattan(pos, y)+1)/self.board[y[0]][y[1]]*self._board_mask[y[0]][y[1]]) #Return index with max probability
