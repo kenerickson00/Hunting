@@ -3,7 +3,7 @@
 from Board import Board, FLAT, HILL, FOREST, CAVE, FOUND, MISSING
 import numpy as np
 
-def rule1(board: Board) -> int:
+def rule1(board: Board, moving_target=False) -> int:
     '''search cell with the highest chance of containing the target first. returns the number of searches'''
     searches = 0
     while True: #continue until target is found
@@ -11,11 +11,13 @@ def rule1(board: Board) -> int:
         cell = board.bestContains()
         if board.explore(cell) == FOUND:
             break
+        if moving_target:
+            board.target_movement(update_cleared=False)
         #otherwise, update probability of searched cell
         board.update_probability(cell)
     return searches
 
-def rule2(board: Board):
+def rule2(board: Board, moving_target=False) -> int:
     '''search cell with the highest chance of finding the target first (cells with lower false positive rates). returns the number of searches'''
     searches = 0
     while True: #continue until target is found
@@ -23,11 +25,13 @@ def rule2(board: Board):
         cell = board.bestFind()
         if board.explore(cell) == FOUND:
             break
+        if moving_target:
+            board.target_movement(update_cleared=False)
         #otherwise, update probability of searched cell
         board.update_probability(cell)
     return searches
 
-def basicAgent1(board: Board) -> int:
+def basicAgent1(board: Board, moving_target=False) -> int:
     '''search cells with the highest chance of containing the target first. Move to neighbors only. Searching the current cell and moving to another cell both count as actions. Returns the number of actions taken.'''
     actions = 0
     best_cell = (-1,-1)
@@ -42,10 +46,13 @@ def basicAgent1(board: Board) -> int:
         #Find the next smallest
         best_cell = board.bestContains()
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        if moving_target:
+            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
+                board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
-def basicAgent2(board: Board):
+def basicAgent2(board: Board, moving_target=False) -> int:
     '''search cells with the highest chance of finding the target first (cells with lower false positive rates). Move to neighbors only. Searching the current cell and moving to another cell both count as actions.'''
     actions = 0
     best_cell = (-1,-1)
@@ -60,10 +67,15 @@ def basicAgent2(board: Board):
         #Find the next smallest
         best_cell = board.bestFind()
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        if moving_target:
+            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
+                board.target_movement(update_cleared=False)
         curcell = best_cell
+        if actions > 500000:
+            return -1
     return actions
 
-def basicAgent3(board: Board):
+def basicAgent3(board: Board) -> int:
     '''score each cell with (manhattan distance)/(probabily of finding target) and travel to the cell with the lowest score. Move to neighbors only. Searching the current cell and moving to another cell both count as actions'''
     actions = 0
     best_cell = (-1,-1)
@@ -78,10 +90,11 @@ def basicAgent3(board: Board):
         #Find the next smallest
         best_cell = board.bestDist(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+
         curcell = best_cell
     return actions
 
-def basicAgent4(board: Board):
+def basicAgent4(board: Board, moving_target=False) -> int:
     '''score each cell with (manhattan distance)/(probabily of finding target) and travel to the cell with the lowest score. Move to neighbors only. Searching the current cell and moving to another cell both count as actions'''
     actions = 0
     best_cell = (-1,-1)
@@ -96,6 +109,9 @@ def basicAgent4(board: Board):
         #Find the next smallest
         best_cell = board.bestDistNumpy(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        if moving_target:
+            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
+                board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
@@ -154,7 +170,7 @@ def improvedAgent3(board: Board):
         curcell = best_cell
     return actions
 
-def improvedAgent4(board: Board):
+def improvedAgent4(board: Board, moving_target=False) -> int:
     '''A modified version of agent 3 that searches each cell multiple times in a row'''
     actions = 0
     best_cell = (-1,-1)
@@ -172,6 +188,9 @@ def improvedAgent4(board: Board):
         #Find the next smallest
         best_cell = board.bestDistNumpy(curcell)
         actions += board.manhattan(curcell, best_cell) #Add the actions of moving to the new location
+        if moving_target:
+            for _ in range(board.manhattan(curcell, best_cell)): #Move target every time it moves
+                board.target_movement(update_cleared=False)
         curcell = best_cell
     return actions
 
@@ -270,4 +289,130 @@ def moveCloseAgent3(board: Board):
         for _ in range(num_walk_actions): #Allow the target to walk for each action we take
             board.target_movement()
         curcell = best_cell
+    return actions
+
+def moveRule1(board: Board) -> int:
+    '''Search cell with highest chance of containing the target on board with a moving target'''
+    searches = 0
+    target_nearby = False
+    while True: #continue until target is found
+        searches += 1 #one search per turn
+        if target_nearby:
+            cell = board.bestLocal(cell, 5)
+        else:
+            cell = board.bestContains()
+        found_target, target_nearby = board.exploreMove(cell)
+        if found_target:
+            break
+        board.target_movement(update_cleared=False) #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(cell)
+    return searches
+
+def moveRule2(board: Board) -> int:
+    '''Search cell with highest chance of finding the target on board with a moving target'''
+    searches = 0
+    target_nearby = False
+    while True: #continue until target is found
+        searches += 1 #one search per turn
+        if target_nearby:
+            cell = board.bestLocal2(cell, 5)
+        else:
+            cell = board.bestFind()
+        found_target, target_nearby = board.exploreMove(cell)
+        if found_target:
+            break
+        board.target_movement(update_cleared=False) #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(cell)
+    return searches
+
+def moveAgent1(board: Board) -> int:
+    '''Agent 1 that utilizes additional information'''
+    target_nearby = False
+    actions = 0
+    curcell = board.bestContains()
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        if found_target: #found target, stop
+            break
+        board.target_movement() #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(curcell)
+        if target_nearby:
+            best_cell = board.bestLocal(curcell, 5)
+        elif best_cell == curcell: #Find new cell to travel to
+            best_cell = board.bestContains()
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action
+    return actions
+
+def moveAgent2(board: Board) -> int:
+    '''Agent 2 that utilizes additional information'''
+    target_nearby = False
+    actions = 0
+    curcell = board.bestFind()
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        if found_target: #found target, stop
+            break
+        board.target_movement() #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(curcell)
+        if target_nearby:
+            best_cell = board.bestLocal2(curcell, 5)
+        elif best_cell == curcell: #Find new cell to travel to
+            best_cell = board.bestFind()
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action
+    return actions
+
+def moveAgent3(board: Board) -> int:
+    '''Agent 3 that utilizes additional information'''
+    target_nearby = False
+    actions = 0
+    curcell = board.bestFind() #Use for initial cell
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        if found_target: #found target, stop
+            break
+        board.target_movement() #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(curcell)
+        if target_nearby:
+            best_cell = board.bestLocal3(curcell, 5)
+        elif best_cell == curcell: #Find new cell to travel to
+            best_cell = board.bestDistNumpy(curcell)
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action
+    return actions
+
+def moveAgent4(board: Board) -> int:
+    '''Improved agent that utilizes additional information'''
+    target_nearby = False
+    actions = 0
+    curcell = board.bestFind() #Use for initial cell
+    best_cell = curcell
+    while True: #continue until target is found
+        tries = 2
+        for _ in range(tries):
+            actions += 1 #take 1 action per turn
+            found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+            if found_target: #found target, stop
+                break
+            board.target_movement() #Target walks
+            #otherwise, update probability of searched cell
+            board.update_probability(curcell)
+        if target_nearby:
+            best_cell = board.bestLocal3(curcell, 5)
+        elif best_cell == curcell: #Find new cell to travel to
+            best_cell = board.bestDistNumpy(curcell)
+        curcell = board.moveTowards(curcell, best_cell) #Walk towards
+        actions += 1 #Walking action
     return actions
