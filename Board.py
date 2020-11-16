@@ -1,7 +1,8 @@
 '''Board representation'''
 
-import numpy as np
 from random import choice
+
+import numpy as np
 
 FLAT = 0
 HILL = 1
@@ -14,6 +15,7 @@ MISSING = 0
 BLOCK = 999999999 #Arbitrary large value to prevent selection
 
 class Board:
+    '''Representation of the landscape'''
 
     def __init__(self, dim: int, copy_board=None, copy_target=None, moving_target=False):
         self.dim = dim
@@ -31,11 +33,6 @@ class Board:
         self._board_mask[self._board == CAVE] *= 0.1
         if moving_target:
             self._known_cleared = np.zeros((dim, dim))
-
-    #Not used
-    def newTarget(self):
-        ind = np.random.choice(1,dim**2)
-        self.target = (ind//dim)(ind%dim)
 
     def explore(self, pos: tuple) -> int:
         if pos[0] < 0 or pos[1] < 0 or pos[0] >= self.dim or pos[1] >= self.dim:
@@ -137,44 +134,6 @@ class Board:
             y = -y
         return x + y
 
-    #Not used
-    def moveTowards(self, pos1: tuple, pos2: tuple) -> tuple:
-        '''finds the best neighbor of pos1 to take, if trying to move to pos2'''
-        # nb = self.getNeighbors(pos1)
-        # if len(nb) <= 0:
-        #     return None #error
-        # hold = nb[0]
-        # least = self.manhattan(nb[0], pos2)
-        # for i in range(len(nb)-1):
-        #     dist = self.manhattan(nb[i+1], pos2)
-        #     if dist < least:
-        #         least = dist
-        #         hold = nb[i+1]
-        # return hold
-        #Row
-        row_diff = 0
-        col_diff = 0
-        if pos2[0] - pos1[0] > 0: #Down
-            row_diff = 1
-        elif pos2[0] - pos1[0] < 0: #Up
-            row_diff = -1
-        #Col
-        if pos2[1] - pos1[1] > 0: #Right
-            col_diff = 1
-        elif pos2[1] - pos1[1] < 0: #Left
-            col_diff = -1
-        #Determine which position to choose
-        if row_diff == 0:
-            return (pos1[0], pos1[1] + col_diff)
-        elif col_diff == 0:
-            return (pos1[0] + row_diff, pos1[1])
-        else: #Return bigger probability
-            if self.board[pos1[0]][pos1[1] + col_diff] > self.board[pos1[0] + row_diff][pos1[1]]:
-                return (pos1[0], pos1[1] + col_diff)
-            else:
-                return (pos1[0] + row_diff, pos1[1])
-
-
     def bestContains(self) -> tuple:
         '''returns cell with best chance of containing the target'''
         max_pos = self.board.argmax()
@@ -197,21 +156,6 @@ class Board:
         search_board = np.multiply(self.board, self._board_mask) * (self._known_cleared == 0)
         max_pos = search_board.argmax()
         return max_pos//self.dim, max_pos % self.dim
-
-    def bestDist(self, pos) -> tuple:
-        '''returns cell with best value of (manhattan dist)/(probability of target)'''
-        min = 99999999
-        hold = (-1,-1)
-        for i in range(self.dim):
-            for j in range(self.dim):
-                if (i,j) == pos:
-                    continue
-                if self.board[i][j] != 0:
-                    temp = (self.manhattan(pos,(i,j))+1)/self.board[i][j]
-                if temp < min:
-                    min = temp
-                    hold = (i,j)
-        return hold
 
     def bestDistNumpy(self, pos) -> tuple:
         x_target, y_target = pos
@@ -250,32 +194,6 @@ class Board:
         scores = np.divide(distance_mask, self.board*self._board_mask)
         min_pos = scores.argmin()
         return min_pos // self.dim, min_pos % self.dim
-
-    #Not used
-    def isvalid(self, pos):
-        if pos[0] < 0 or pos[1] < 0:
-            return False
-        if pos[0] >= self.dim or pos[1] >= self.dim:
-            return False
-        return True
-
-    #Not used
-    def box(self, pos, x) -> set:
-        '''returns an set of cells that are at most x spaces away from pos'''
-        s = set()
-        for i in range(x):
-            for j in range(x):
-                if x == 0 and y == 0:
-                    continue
-                if self.isvalid(pos+(i,j)):
-                    s.add(pos+(i,j))
-                if self.isvalid(pos+(-i,j)):
-                    s.add(pos+(-i,j))
-                if self.isvalid(pos+(i,-j)):
-                    s.add(pos+(i,-j))
-                if self.isvalid(pos+(-i,-j)):
-                    s.add(pos+(-i,-j))
-        return s
 
     def bestLocal(self, pos, x:int) -> tuple:
         '''Rule 1 implementation - Returns cell with highest chance of containing target within radius x around pos'''
