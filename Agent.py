@@ -288,12 +288,12 @@ def moveRule1(board: Board) -> int:
     '''Search cell with highest chance of containing the target on board with a moving target'''
     searches = 0
     target_nearby = False
+    cell = board.bestContainsMoving()
     while True: #continue until target is found
         searches += 1 #one search per turn
         if target_nearby:
-            cell = board.bestLocal(cell, 5)
-        else:
-            cell = board.bestContains()
+            board.isNearby(cell)
+        cell = board.bestContainsMoving()
         found_target, target_nearby = board.exploreMove(cell)
         if found_target:
             break
@@ -306,12 +306,12 @@ def moveRule2(board: Board) -> int:
     '''Search cell with highest chance of finding the target on board with a moving target'''
     searches = 0
     target_nearby = False
+    cell = board.bestFindMoving()
     while True: #continue until target is found
         searches += 1 #one search per turn
         if target_nearby:
-            cell = board.bestLocal2(cell, 5)
-        else:
-            cell = board.bestFind()
+            board.isNearby(cell)
+        cell = board.bestFindMoving()
         found_target, target_nearby = board.exploreMove(cell)
         if found_target:
             break
@@ -324,73 +324,89 @@ def moveAgent1(board: Board) -> int:
     '''Agent 1 that utilizes additional information'''
     target_nearby = False
     actions = 0
-    curcell = board.bestContains()
+    curcell = board.bestContainsMoving()
     best_cell = curcell
     while True: #continue until target is found
         actions += 1 #take 1 action per turn
         found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        # print(len(np.argwhere(board._known_cleared == 0)))
         if found_target: #found target, stop
             break
+        if board._known_cleared[board.target[0]][board.target[1]] != 0:
+            if board._known_cleared[board.target[0]][board.target[1]] != 1:
+                print("BIGGG ERROR")
+            print("ERROR")
+            print(board.target)
+            print(board._known_cleared)
         board.target_movement() #Target walks
         #otherwise, update probability of searched cell
         board.update_probability(curcell)
         if target_nearby:
-            best_cell = board.bestLocal(curcell, 5)
-        elif best_cell == curcell: #Find new cell to travel to
-            best_cell = board.bestContains()
-        curcell = best_cell
+            board.isNearby(curcell)
+        best_cell = board.bestContainsMoving()
         actions += board.manhattan(curcell, best_cell) #Walking action
+        curcell = best_cell
     return actions
 
 def moveAgent2(board: Board) -> int:
     '''Agent 2 that utilizes additional information'''
     target_nearby = False
     actions = 0
-    curcell = board.bestFind()
+    curcell = board.bestFindMoving()
     best_cell = curcell
     while True: #continue until target is found
         actions += 1 #take 1 action per turn
         found_target, target_nearby = board.exploreMove(curcell) #explore current cell
         if found_target: #found target, stop
             break
+        if board._known_cleared[board.target[0]][board.target[1]] != 0:
+            if board._known_cleared[board.target[0]][board.target[1]] != 1:
+                print("BIGGG ERROR")
+            print("ERROR")
+            print(board.target)
+            print(board._known_cleared)
         board.target_movement() #Target walks
         #otherwise, update probability of searched cell
         board.update_probability(curcell)
         if target_nearby:
-            best_cell = board.bestLocal2(curcell, 5)
-        elif best_cell == curcell: #Find new cell to travel to
-            best_cell = board.bestFind()
-        curcell = best_cell
+            board.isNearby(curcell)
+        best_cell = board.bestFindMoving()
         actions += board.manhattan(curcell, best_cell) #Walking action
+        curcell = best_cell
     return actions
 
 def moveAgent3(board: Board) -> int:
     '''Agent 3 that utilizes additional information'''
     target_nearby = False
     actions = 0
-    curcell = board.bestFind() #Use for initial cell
+    curcell = board.bestFindMoving() #Use for initial cell
     best_cell = curcell
     while True: #continue until target is found
         actions += 1 #take 1 action per turn
         found_target, target_nearby = board.exploreMove(curcell) #explore current cell
         if found_target: #found target, stop
             break
+        if board._known_cleared[board.target[0]][board.target[1]] != 0:
+            if board._known_cleared[board.target[0]][board.target[1]] != 1:
+                print("BIGGG ERROR")
+            print("ERROR")
+            print(board.target)
+            print(board._known_cleared)
         board.target_movement() #Target walks
         #otherwise, update probability of searched cell
         board.update_probability(curcell)
         if target_nearby:
-            best_cell = board.bestLocal3(curcell, 5)
-        elif best_cell == curcell: #Find new cell to travel to
-            best_cell = board.bestDistNumpy(curcell)
-        curcell = best_cell
+            board.isNearby(curcell)
+        best_cell = board.bestDistMoving(curcell)
         actions += board.manhattan(curcell, best_cell) #Walking action
+        curcell = best_cell
     return actions
 
 def moveAgent4(board: Board) -> int:
     '''Improved agent that utilizes additional information'''
     target_nearby = False
     actions = 0
-    curcell = board.bestFind() #Use for initial cell
+    curcell = board.bestFindMoving() #Use for initial cell
     best_cell = curcell
     found = False
     while True: #continue until target is found
@@ -401,15 +417,43 @@ def moveAgent4(board: Board) -> int:
             if found_target: #found target, stop
                 found = True
                 break
+            if board._known_cleared[board.target[0]][board.target[1]] != 0:
+                if board._known_cleared[board.target[0]][board.target[1]] != 1:
+                    print("BIGGG ERROR")
+                print("ERROR")
+                print(board.target)
+                print(board._known_cleared)
             board.target_movement() #Target walks
             #otherwise, update probability of searched cell
             board.update_probability(curcell)
         if found:
             break
         if target_nearby:
-            best_cell = board.bestLocal3(curcell, 5)
-        elif best_cell == curcell: #Find new cell to travel to
-            best_cell = board.bestDistNumpy(curcell)
-        curcell = best_cell
+            board.isNearby(curcell)
+        best_cell = board.bestDistMoving(curcell)
         actions += board.manhattan(curcell, best_cell) #Walking action
+        curcell = best_cell
+    return actions
+
+def moveAgent5(board: Board) -> int:
+    '''Pick a random cell that is valid'''
+    target_nearby = False
+    actions = 0
+    valid = np.argwhere(board._known_cleared == 0)
+    curcell = tuple(valid[int(np.random.choice(len(valid), 1)[0])])
+    best_cell = curcell
+    while True: #continue until target is found
+        actions += 1 #take 1 action per turn
+        found_target, target_nearby = board.exploreMove(curcell) #explore current cell
+        if found_target: #found target, stop
+            break
+        board.target_movement() #Target walks
+        #otherwise, update probability of searched cell
+        board.update_probability(curcell)
+        if target_nearby:
+            board.isNearby(curcell)
+        valid = np.argwhere(board._known_cleared == 0)
+        best_cell = tuple(valid[int(np.random.choice(len(valid), 1)[0])])
+        actions += board.manhattan(curcell, best_cell) #Walking action
+        curcell = best_cell
     return actions
